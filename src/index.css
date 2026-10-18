@@ -1,0 +1,785 @@
+/* ============================================================
+   MC 图书馆 —— 全局视觉规范
+   配色：MC 木质/棕色系 + 羊皮纸色
+   字体：标题像素感 / 正文易读性
+   ============================================================ */
+
+/* 引入可商用像素字体（Google Fonts OFL 协议），离线时自动降级 */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  /* MC 木质色板 */
+  --wood-deep: #2d1b12;
+  --wood-dark: #3e2723;
+  --wood: #5d4037;
+  --wood-light: #8d6e63;
+  --wood-plank: #a0785a;
+
+  /* 羊皮纸色板 */
+  --parchment: #f5e6c8;
+  --parchment-dark: #e8d5a3;
+  --parchment-shadow: #d4c19a;
+
+  /* 语义化颜色 */
+  --text-main: var(--parchment);
+  --text-dark: var(--wood-dark);
+  --text-muted: var(--wood-light);
+  --overlay-mask: rgba(20, 12, 8, 0.68);
+
+  /* 字体族 */
+  --font-pixel: 'Press Start 2P', 'ZCOOL QingKe HuangYou', 'Microsoft YaHei', monospace;
+  --font-body: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background-color: var(--wood-deep);
+}
+
+/* 标题统一使用像素/方块感字体 */
+h1, h2, h3, h4, h5, h6,
+.pixel-font {
+  font-family: var(--font-pixel);
+  letter-spacing: 2px;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6);
+  font-weight: 400;
+}
+
+/* ============================================================
+   全局布局 Layout
+   ============================================================ */
+
+.layout {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.layout-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated; /* 保持像素图锐利边缘 */
+}
+
+.layout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--overlay-mask);
+  pointer-events: none;
+}
+
+.layout-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 通用内容容器：羊皮纸卡片效果 */
+.parchment-card {
+  background-color: rgba(245, 230, 200, 0.92);
+  color: var(--text-dark);
+  border: 3px solid var(--wood);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  padding: 2rem;
+  border-radius: 4px;
+}
+
+main {
+  padding: 32px;
+  flex: 1;
+}
+
+/* ============================================================
+   首页（/）
+   ============================================================ */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 48px;
+}
+
+.home-slogan {
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  line-height: 1.8;
+  margin: 0;
+}
+
+.home-cards {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 220px;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+}
+
+.home-card-arrow {
+  font-family: var(--font-pixel);
+  color: var(--wood);
+}
+
+/* ============================================================
+   个人信息页（/about）
+   ============================================================ */
+
+.about {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+/* 头像框：方形木质边框 + 像素阴影，贴合 MC 方块风 */
+.about-avatar {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border: 4px solid var(--wood);
+  box-shadow:
+    0 0 0 4px var(--wood-dark),
+    8px 8px 0 rgba(0, 0, 0, 0.4);
+}
+
+.about-name {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--wood-dark);
+  text-shadow: none;
+}
+
+.about-contacts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.about-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 3px solid var(--wood);
+  background-color: var(--parchment-dark);
+  color: var(--wood-dark);
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.about-contact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.about-contact-icon {
+  font-size: 1.1rem;
+}
+
+/* ============================================================
+   MC 通用按钮（木质告示牌风）
+   ============================================================ */
+
+.mc-btn {
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  color: var(--parchment);
+  background-color: var(--wood);
+  border: 3px solid var(--wood-dark);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.35), 4px 4px 0 rgba(0, 0, 0, 0.4);
+  padding: 10px 22px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.mc-btn:hover {
+  background-color: var(--wood-light);
+}
+
+.mc-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35), 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   内容展示（/works）：MC 物品栏格子
+   ============================================================ */
+
+.works {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.works-title {
+  margin: 0;
+}
+
+.works-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  justify-content: center;
+}
+
+/* 物品栏格子：凹陷边框 + 深底，还原 MC 背包槽位 */
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 160px;
+  padding: 14px 10px 18px;
+  background: rgba(20, 12, 8, 0.72);
+  border: 4px solid;
+  border-color: #0f0a06 #4a3b2c #4a3b2c #0f0a06;
+  cursor: pointer;
+  font-family: var(--font-body);
+  color: var(--parchment);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+/* 悬停：格子提亮并放大 */
+.slot:hover {
+  filter: brightness(1.35);
+  transform: scale(1.06);
+}
+
+/* 按下：缩小回弹，模拟按压手感 */
+.slot:active {
+  filter: brightness(1.15);
+  transform: scale(0.95);
+}
+
+.slot-icon-wrap {
+  position: relative;
+  width: 112px;
+  height: 112px;
+}
+
+.slot-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+/* "待解锁"红色角标 */
+.slot-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: #fff;
+  background: rgba(120, 20, 20, 0.92);
+  border: 2px solid #3a0d0d;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.slot-locked .slot-icon {
+  filter: saturate(0.7) brightness(0.85);
+}
+
+.slot-name {
+  font-family: var(--font-pixel);
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+}
+
+/* ============================================================
+   书与笔浮层：开书动画 / 摊开的书 / 待解锁提示
+   ============================================================ */
+
+.book-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 6, 3, 0.78);
+}
+
+/* —— 开书过场动画：两页从书脊向两侧翻开 —— */
+.opening-book {
+  display: flex;
+  width: min(560px, 80vw);
+  height: min(380px, 54vw);
+  perspective: 1200px;
+  animation: book-pop 0.9s ease forwards;
+}
+
+.opening-page {
+  flex: 1;
+  background: var(--parchment);
+  border: 4px solid var(--wood);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.opening-page-left {
+  transform-origin: right center;
+  animation: unfold-left 0.9s ease-out forwards;
+}
+
+.opening-page-right {
+  transform-origin: left center;
+  animation: unfold-right 0.9s ease-out forwards;
+}
+
+@keyframes unfold-left {
+  0% { transform: rotateY(88deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+@keyframes unfold-right {
+  0% { transform: rotateY(-88deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+@keyframes book-pop {
+  0% { transform: scale(0.55) translateY(30px); opacity: 0; }
+  35% { transform: scale(0.75) translateY(0); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* —— 摊开的书（目录页 / 空白书页共用骨架） —— */
+.open-book {
+  position: relative;
+  display: flex;
+  width: min(880px, 92vw);
+  min-height: min(520px, 70vh);
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.65));
+}
+
+.open-page {
+  flex: 1;
+  background: var(--parchment);
+  color: var(--text-dark);
+  border: 4px solid var(--wood);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 书脊阴影：摊开的书中间的凹槽 */
+.open-page-left {
+  border-right-width: 2px;
+  box-shadow: inset -18px 0 24px -18px rgba(62, 39, 35, 0.8);
+}
+
+.open-page-right {
+  border-left-width: 2px;
+  box-shadow: inset 18px 0 24px -18px rgba(62, 39, 35, 0.8);
+}
+
+.open-book-close {
+  position: absolute;
+  left: 50%;
+  bottom: -28px;
+  transform: translateX(-50%);
+}
+
+/* —— 空白书页：浅色新纸 + 横格线，与写过字的页面明显区分 —— */
+.blank-page {
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  background-color: #fbf3dd;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 33px,
+    rgba(141, 110, 99, 0.28) 34px
+  );
+}
+
+.blank-page-hint {
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  letter-spacing: 3px;
+  color: var(--wood);
+  margin: 0;
+}
+
+.blank-page-sub {
+  color: var(--wood-light);
+  margin: 0;
+}
+
+/* —— 待解锁提示弹窗 —— */
+.locked-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: min(420px, 88vw);
+  padding: 32px 28px;
+  text-align: center;
+  background: var(--parchment);
+  color: var(--text-dark);
+  border: 4px solid var(--wood);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.65);
+}
+
+.locked-modal-icon {
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border: 3px solid var(--wood-dark);
+}
+
+.locked-modal-title {
+  margin: 0;
+  color: #7a1f1f;
+  text-shadow: none;
+}
+
+.locked-modal-text {
+  margin: 0;
+  color: var(--wood);
+}
+
+/* ============================================================
+   目录页（/works/:moduleId）
+   ============================================================ */
+
+.book-page-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toc-cover {
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.toc-cover-icon {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border: 3px solid var(--wood-dark);
+}
+
+.toc-cover-name {
+  font-family: var(--font-pixel);
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  color: var(--wood-dark);
+}
+
+.toc-title {
+  font-family: var(--font-pixel);
+  letter-spacing: 6px;
+  color: var(--wood-dark);
+  text-shadow: none;
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+.toc-item {
+  margin-bottom: 14px;
+}
+
+/* 目录行：项目名 …… 页码，虚线引导 */
+.toc-link {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--wood-dark);
+  font-size: 1.05rem;
+}
+
+.toc-link:hover .toc-name {
+  color: #7a4a1f;
+  text-decoration: underline;
+}
+
+.toc-dots {
+  flex: 1;
+  border-bottom: 3px dotted var(--wood-light);
+}
+
+.toc-no {
+  font-family: var(--font-pixel);
+  font-size: 0.8rem;
+  color: var(--wood);
+}
+
+.toc-back {
+  align-self: center;
+  margin-top: 16px;
+}
+
+/* ============================================================
+   项目内容页（/works/:moduleId/:projectId）：羊皮纸书页
+   ============================================================ */
+
+.book-page {
+  width: min(680px, 92vw);
+  background: var(--parchment);
+  color: var(--text-dark);
+  border: 4px solid var(--wood);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.65);
+  padding: 40px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.book-page-header {
+  border-bottom: 3px double var(--wood-light);
+  padding-bottom: 16px;
+}
+
+.book-page-module {
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: var(--wood-light);
+}
+
+.book-page-title {
+  margin: 8px 0 0;
+  color: var(--wood-dark);
+  text-shadow: none;
+  font-size: 1.5rem;
+}
+
+.book-page-footer {
+  display: flex;
+  justify-content: center;
+  border-top: 3px double var(--wood-light);
+  padding-top: 20px;
+}
+
+/* Markdown 正文排版（书页内） */
+.markdown-body h2 {
+  color: var(--wood-dark);
+  text-shadow: none;
+  font-size: 1.15rem;
+  margin: 18px 0 8px;
+}
+
+.markdown-body p,
+.markdown-body li {
+  line-height: 1.9;
+}
+
+.markdown-body ul {
+  padding-left: 1.4em;
+}
+
+/* ============================================================
+   顶部导航栏（MC 木质风格）
+   ============================================================ */
+
+.navbar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 24px;
+  border-bottom: 3px solid var(--wood-dark);
+  background: rgba(20, 12, 8, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.navbar-link {
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  color: var(--parchment);
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 3px solid transparent;
+  transition: background-color 0.12s ease, transform 0.12s ease;
+}
+
+.navbar-link:hover {
+  background: rgba(245, 230, 200, 0.15);
+}
+
+.navbar-link:active {
+  transform: scale(0.94);
+}
+
+/* 当前栏目：木质按钮高亮 */
+.navbar-link-active {
+  background: var(--wood);
+  border-color: var(--wood-dark);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================
+   加载过渡：图片淡入 + 页面淡入（body 已是深棕底，不会闪白）
+   ============================================================ */
+
+img {
+  animation: img-in 0.45s ease both;
+}
+
+@keyframes img-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+main {
+  animation: page-in 0.3s ease both;
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   响应式：手机（≤640px）
+   ============================================================ */
+
+@media (max-width: 640px) {
+  main {
+    padding: 16px;
+  }
+
+  /* 导航栏压缩 */
+  .navbar {
+    padding: 10px 12px;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .navbar-link {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    padding: 6px 8px;
+  }
+
+  /* 首页 */
+  .home {
+    gap: 32px;
+  }
+
+  .home-card {
+    min-width: 180px;
+    font-size: 0.95rem;
+    padding: 18px;
+  }
+
+  /* 物品栏格子缩小 */
+  .works {
+    gap: 24px;
+  }
+
+  .works-grid {
+    gap: 16px;
+  }
+
+  .slot {
+    width: 128px;
+    padding: 10px 6px 14px;
+  }
+
+  .slot-icon-wrap {
+    width: 88px;
+    height: 88px;
+  }
+
+  .slot-name {
+    font-size: 0.75rem;
+  }
+
+  /* 摊开的书：手机改单页，隐藏左页装饰 */
+  .open-book {
+    flex-direction: column;
+    min-height: 60vh;
+  }
+
+  .open-page-left {
+    display: none;
+  }
+
+  .open-page {
+    padding: 24px 20px;
+  }
+
+  /* 内容书页 */
+  .book-page {
+    padding: 24px 20px;
+  }
+
+  /* 开书动画尺寸 */
+  .opening-book {
+    height: 50vw;
+  }
+
+  /* 个人信息页 */
+  .about-card {
+    padding: 24px 18px;
+  }
+
+  .about-avatar {
+    width: 120px;
+    height: 120px;
+  }
+}
