@@ -40,9 +40,9 @@ export const siteConfig: SiteConfig = {
 
   // ── 改这里：个人信息页展示的内容会随之改变 ────────────────
   profile: {
-    name: '张三', // 你的姓名
+    name: '赵齐', // 你的姓名
     avatar: avatarImg, // 头像来自 src/assets/avatar.jpg（替换该文件即可换头像）
-    email: '123456789@qq.com', // 你的 QQ 邮箱
-    github: 'https://github.com/yourname', // 你的 GitHub 主页
+    email: '1819858506@qq.com', // 你的 QQ 邮箱
+    github: 'https://github.com/lazyfish-lovesleep', // 你的 GitHub 主页
   },
 }

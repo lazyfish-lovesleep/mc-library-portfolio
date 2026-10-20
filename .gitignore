@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# 环境变量（可能含密钥，绝不提交）
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# Cloudflare Wrangler 本地缓存
+.wrangler
+.tmp
+
+# 临时文件
+*.zip
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
