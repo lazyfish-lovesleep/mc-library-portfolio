@@ -49,6 +49,19 @@ function ProjectDetail() {
           </button>
         </footer>
       </article>
+
+      {/* 交互演示：project.demo 有值时，在书页下方嵌入 public/ 下的独立页面 */}
+      {project.demo && (
+        <section className="demo-panel parchment-card">
+          <h2 className="demo-panel-title">交互演示</h2>
+          <iframe
+            className="demo-frame"
+            src={project.demo}
+            title={`${project.name} 交互演示`}
+            loading="lazy"
+          />
+        </section>
+      )}
     </main>
   )
 }
