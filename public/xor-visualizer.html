@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XOR 2-2-1 网络可视化（稳健版）</title>
+<style>
+  /* 视觉风格对齐主站：MC 木质 / 羊皮纸 / 像素标题 / 硬边框硬投影 */
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;margin:0;
+       background:#f5e6c8;color:#3e2723;}
+  h1{font-family:'Press Start 2P',"ZCOOL QingKe HuangYou","Microsoft YaHei",monospace;
+     font-size:14px;line-height:2;letter-spacing:1px;padding:14px 18px;margin:0;
+     background:#e8d5a3;color:#3e2723;border-bottom:3px solid #5d4037;}
+  .card{background:#fbf3dd;border:3px solid #5d4037;border-radius:0;margin:14px 16px;
+        padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,0.25);}
+  .card h2{font-family:'Press Start 2P',"ZCOOL QingKe HuangYou","Microsoft YaHei",monospace;
+           font-size:13px;line-height:2;letter-spacing:1px;margin:0 0 10px;color:#7a4a1f;}
+  .row{display:flex;flex-wrap:wrap;gap:12px;}
+  .row .card{flex:1 1 300px;margin:12px 8px;}
+  canvas{display:block;width:100%;background:#fffdf6;border:2px solid #a0785a;border-radius:0;}
+  button{margin:4px 6px 4px 0;padding:7px 14px;border:3px solid #3e2723;border-radius:0;
+         background:#8d6e63;color:#f5e6c8;cursor:pointer;font-size:13px;
+         font-family:'Press Start 2P',"ZCOOL QingKe HuangYou","Microsoft YaHei",monospace;
+         letter-spacing:1px;box-shadow:inset 0 -3px 0 rgba(0,0,0,0.35),3px 3px 0 rgba(0,0,0,0.35);}
+  button:hover{background:#a0785a;}
+  button:active{transform:translate(2px,2px);
+                box-shadow:inset 0 -2px 0 rgba(0,0,0,0.35),1px 1px 0 rgba(0,0,0,0.35);}
+  button.on{background:#5d4037;color:#f5e6c8;border-color:#2d1b12;}
+  #status{font-size:13px;color:#8d6e63;margin:8px 0 0;}
+  table{border-collapse:collapse;font-size:13px;width:100%;}
+  td,th{border:1px solid #a0785a;padding:4px 8px;text-align:center;}
+</style>
+</head>
+<body>
+<h1>XOR 2-2-1 Sigmoid 网络 —— 前向 / 反向 / 调参 全过程可视化（稳健版）</h1>
+
+<div class="card">
+  <h2>控制</h2>
+  <button id="btnStep">单步训练</button>
+  <button id="btnRun">连续训练</button>
+  <button id="btnReset">重新初始化</button>
+  学习率预设：
+  <button class="lr on" data-lr="0.5">0.5</button>
+  <button class="lr" data-lr="1.0">1.0</button>
+  <button class="lr" data-lr="2.0">2.0</button>
+  <p id="status">epoch = 0　loss = —</p>
+</div>
+
+<div class="card"><h2>① 网络结构（节点亮度=激活值，连线粗细=|权重|，青=正 红=负）</h2>
+  <canvas id="cvNet" height="220"></canvas></div>
+
+<div class="row">
+  <div class="card"><h2>② 输入空间 (x1,x2)：同类交错，直线分不开</h2>
+    <canvas id="cvIn" height="260"></canvas></div>
+  <div class="card"><h2>③ 隐藏空间 (h1,h2)：映射后一条直线可分</h2>
+    <canvas id="cvHid" height="260"></canvas></div>
+  <div class="card"><h2>④ 损失曲线</h2>
+    <canvas id="cvLoss" height="260"></canvas></div>
+</div>
+
+<div class="card"><h2>⑤ 参数与梯度（条长=参数值；训练时红条=|梯度|）</h2>
+  <canvas id="cvPar" height="260"></canvas></div>
+
+<script>
+"use strict";
+/* ---------- 工具：安全数值 ---------- */
+function safe(v, fb){ return (typeof v === "number" && Number.isFinite(v)) ? v : fb; }
+
+/* ---------- 数据与网络 ---------- */
+var DATA = [ {x:[0,0], y:0}, {x:[0,1], y:1}, {x:[1,0], y:1}, {x:[1,1], y:0} ];
+var W1, b1, W2, b2, G = {}, epoch = 0, lossHist = [], running = false, LR = 0.5;
+
+function sigmoid(z){ z = safe(z, 0); return 1 / (1 + Math.exp(-z)); }
+
+function init(){
+  /* 固定初值：保证可复现，且一定落在能收敛的区域内 */
+  W1 = [ [ 2.0,  2.0], [ -2.0, -2.0] ];   /* W1[i][j]: 输入j -> 隐藏i */
+  b1 = [ -1.0,  3.0 ];
+  W2 = [ 2.0, -2.0 ];                      /* 隐藏i -> 输出 */
+  b2 = [ -1.0 ];
+  G = { W1:[[0,0],[0,0]], b1:[0,0], W2:[0,0], b2:[0] };
+  epoch = 0; lossHist = [];
+  drawAll();
+}
+
+/* ---------- 前向传播 ---------- */
+function forward(x){
+  var h = [0,0], z = [0,0], i, j;
+  for(i=0;i<2;i++){
+    z[i] = b1[i];
+    for(j=0;j<2;j++) z[i] += W1[i][j]*x[j];
+    h[i] = sigmoid(z[i]);
+  }
+  var zo = b2[0] + W2[0]*h[0] + W2[1]*h[1];
+  var o  = sigmoid(zo);
+  return { x:x, h:h, o:o };
+}
+
+/* ---------- 一轮训练（4 个样本，批量梯度下降） ---------- */
+function trainEpoch(){
+  var gW1=[[0,0],[0,0]], gb1=[0,0], gW2=[0,0], gb2=0, loss=0, s, i, j;
+  for(s=0;s<DATA.length;s++){
+    var f  = forward(DATA[s].x);
+    var t  = DATA[s].y;
+    var e  = f.o - t;                       /* dL/do, L=0.5*(o-t)^2 的导数 */
+    loss  += 0.5*e*e;
+    var dO = e * f.o*(1-f.o);               /* 输出层 delta */
+    gW2[0] += dO*f.h[0]; gW2[1] += dO*f.h[1]; gb2 += dO;
+    for(i=0;i<2;i++){
+      var dH = (W2[i]*dO) * f.h[i]*(1-f.h[i]);   /* 隐藏层 delta */
+      gb1[i] += dH;
+      for(j=0;j<2;j++) gW1[i][j] += dH*DATA[s].x[j];
+    }
+  }
+  var n = DATA.length;
+  loss /= n;
+  for(i=0;i<2;i++){
+    gW2[i]/=n; gb1[i]/=n;
+    for(j=0;j<2;j++) gW1[i][j]/=n;
+  }
+  gb2/=n;
+  /* 更新并做 NaN 拦截：任一新值非法则放弃本轮更新 */
+  var nW1=[[0,0],[0,0]], nb1=[0,0], nW2=[0,0], nb2=0, ok=true;
+  for(i=0;i<2;i++){
+    nb1[i]=safe(b1[i]-LR*gb1[i], null); if(nb1[i]===null) ok=false;
+    nW2[i]=safe(W2[i]-LR*gW2[i], null); if(nW2[i]===null) ok=false;
+    for(j=0;j<2;j++){ nW1[i][j]=safe(W1[i][j]-LR*gW1[i][j], null); if(nW1[i][j]===null) ok=false; }
+  }
+  nb2=safe(b2[0]-LR*gb2, null); if(nb2===null) ok=false;
+  if(ok){ W1=nW1; b1=nb1; W2=nW2; b2=[nb2]; }
+  G = { W1:gW1, b1:gb1, W2:gW2, b2:gb2 };
+  epoch++; lossHist.push(safe(loss,0));
+  return loss;
+}
+
+/* ---------- 绘图 ---------- */
+function ctxOf(id){ var c=document.getElementById(id);
+  c.width = c.clientWidth || 600; return c.getContext("2d"); }
+function line(g,x1,y1,x2,y2,w,col){ g.strokeStyle=col; g.lineWidth=w;
+  g.beginPath(); g.moveTo(x1,y1); g.lineTo(x2,y2); g.stroke(); }
+function dot(g,x,y,r,fill){ g.fillStyle=fill; g.beginPath();
+  g.arc(x,y,r,0,Math.PI*2); g.fill();
+  g.strokeStyle="#1f6f6f"; g.lineWidth=2; g.stroke(); }
+function gray(v){ v=Math.min(1,Math.max(0,safe(v,0)));
+  var c=Math.round(255-235*v); return "rgb("+c+","+c+","+c+")"; }
+
+function drawNet(){
+  var g=ctxOf("cvNet"), W=g.canvas.width, H=220;
+  g.clearRect(0,0,W,H);
+  var xs=[W*0.2,W*0.5,W*0.8], ys=[[H*0.35,H*0.65],[H*0.35,H*0.65],[H*0.5]];
+  var act=[ forward([0,1]) ];  /* 用样本(0,1)的激活做亮度示例 */
+  var a=act[0];
+  var vals=[[0,1],[a.h[0],a.h[1]],[a.o]];
+  var i,j;
+  for(i=0;i<2;i++) for(j=0;j<2;j++)
+    line(g,xs[0],ys[0][i],xs[1],ys[1][j],1+4*Math.min(1,Math.abs(W1[j][i])),
+         W1[j][i]>=0?"#2a9d8f":"#c0392b");
+  for(i=0;i<2;i++)
+    line(g,xs[1],ys[1][i],xs[2],ys[2][0],1+4*Math.min(1,Math.abs(W2[i])),
+         W2[i]>=0?"#2a9d8f":"#c0392b");
+  var names=[["x1","x2"],["h1","h2"],["o"]];
+  for(i=0;i<3;i++) for(j=0;j<vals[i].length;j++){
+    dot(g,xs[i],ys[i][j],16,gray(vals[i][j]));
+    g.fillStyle="#16323a"; g.font="12px sans-serif"; g.textAlign="center";
+    g.fillText(names[i][j], xs[i], ys[i][j]+4);
+  }
+}
+
+function drawSpace(id, get, title){
+  var g=ctxOf(id), W=g.canvas.width, H=260, pad=40, i;
+  g.clearRect(0,0,W,H);
+  line(g,pad,H-pad,W-20,H-pad,1,"#889"); 
+  line(g,pad,H-pad,pad,20,1,"#889");
+  g.fillStyle="#556"; g.font="12px sans-serif";
+  g.fillText(title[0], W-24, H-pad+16); g.fillText(title[1], pad-14, 26);
+  for(i=0;i<DATA.length;i++){
+    var p=get(DATA[i], i);
+    var X=pad+(W-pad-40)*p[0], Y=(H-pad)-(H-pad-40)*p[1];
+    dot(g,X,Y,10, DATA[i].y===1?"#c0392b":"#e0a63c");
+    g.fillStyle="#334"; g.textAlign="left";
+    g.fillText("("+DATA[i].x[0]+","+DATA[i].x[1]+")", X+14, Y+4);
+  }
+}
+
+function drawLoss(){
+  var g=ctxOf("cvLoss"), W=g.canvas.width, H=260, pad=40, i;
+  g.clearRect(0,0,W,H);
+  line(g,pad,H-pad,W-20,H-pad,1,"#889"); line(g,pad,H-pad,pad,20,1,"#889");
+  g.fillStyle="#556"; g.font="12px sans-serif";
+  g.fillText("epoch", W-40, H-pad+16); g.fillText("loss", pad-4, 16);
+  if(lossHist.length<2) return;
+  var mx=Math.max.apply(null, lossHist.concat([0.3]));
+  g.strokeStyle="#1f6f6f"; g.lineWidth=2; g.beginPath();
+  for(i=0;i<lossHist.length;i++){
+    var X=pad+(W-pad-40)*(i/Math.max(1,lossHist.length-1));
+    var Y=(H-pad)-(H-pad-40)*(lossHist[i]/mx);
+    if(i===0) g.moveTo(X,Y); else g.lineTo(X,Y);
+  }
+  g.stroke();
+}
+
+function drawPar(){
+  var g=ctxOf("cvPar"), W=g.canvas.width, H=260;
+  g.clearRect(0,0,W,H);
+  var items=[
+    ["W1[0][0]",W1[0][0],G.W1[0][0]],["W1[0][1]",W1[0][1],G.W1[0][1]],
+    ["W1[1][0]",W1[1][0],G.W1[1][0]],["W1[1][1]",W1[1][1],G.W1[1][1]],
+    ["b1[0]",b1[0],G.b1[0]],["b1[1]",b1[1],G.b1[1]],
+    ["W2[0]",W2[0],G.W2[0]],["W2[1]",W2[1],G.W2[1]],["b2",b2[0],G.b2[0]]
+  ];
+  var y=20, i, mid=W*0.5, sc=W*0.18;
+  g.font="12px monospace"; g.fillStyle="#334"; g.textAlign="left";
+  for(i=0;i<items.length;i++){
+    g.fillText(items[i][0], 12, y+4);
+    line(g,mid,y,mid+8,1,"#aab");
+    var v=safe(items[i][1],0), gv=safe(items[i][2],0);
+    line(g,mid,y,mid+Math.max(-sc,Math.min(sc,v*sc/3)),5,"#1f6f6f");
+    line(g,mid+8,y,mid+8+Math.max(-sc,Math.min(sc,gv*sc*4)),3,"#c0392b");
+    g.fillText(v.toFixed(3), W-70, y+4);
+    y+=26;
+  }
+}
+
+function drawAll(){
+  drawNet();
+  drawSpace("cvIn",  function(d){ return [d.x[0]*0.8+0.1, d.x[1]*0.8+0.1]; }, ["x1","x2"]);
+  drawSpace("cvHid", function(d){ var f=forward(d.x); return [f.h[0]*0.8+0.1, f.h[1]*0.8+0.1]; }, ["h1","h2"]);
+  drawLoss(); drawPar();
+  var l = lossHist.length? lossHist[lossHist.length-1] : null;
+  document.getElementById("status").textContent =
+    "epoch = "+epoch+"　loss = "+(l===null?"—":l.toFixed(4))+
+    "　预测: "+DATA.map(function(d){return forward(d.x).o.toFixed(2);}).join(" / ");
+}
+
+/* ---------- 交互 ---------- */
+document.getElementById("btnStep").onclick=function(){ trainEpoch(); drawAll(); };
+document.getElementById("btnRun").onclick=function(){
+  running=!running; this.classList.toggle("on",running);
+  this.textContent=running?"暂停":"连续训练";
+  if(running) loop();
+};
+function loop(){ if(!running) return;
+  for(var k=0;k<5;k++) trainEpoch();
+  drawAll(); requestAnimationFrame(loop); }
+document.getElementById("btnReset").onclick=function(){
+  running=false;
+  var b=document.getElementById("btnRun");
+  b.classList.remove("on"); b.textContent="连续训练";
+  init();
+};
+var lrBtns=document.querySelectorAll(".lr");
+for(var q=0;q<lrBtns.length;q++){
+  lrBtns[q].onclick=function(){
+    LR=safe(parseFloat(this.getAttribute("data-lr")),0.5);
+    for(var r=0;r<lrBtns.length;r++) lrBtns[r].classList.remove("on");
+    this.classList.add("on");
+  };
+}
+window.onresize=drawAll;
+init();
+</script>
+</body>
+</html>
