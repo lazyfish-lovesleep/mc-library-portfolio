@@ -497,8 +497,10 @@ main {
 
 .book-page-wrap {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 32px;
 }
 
 .toc-cover {
@@ -630,6 +632,63 @@ main {
 
 .markdown-body ul {
   padding-left: 1.4em;
+}
+
+/* 行内代码：浅羊皮纸底 + 木色字，和正文区分开 */
+.markdown-body code {
+  background: var(--parchment-dark);
+  color: #7a4a1f;
+  border: 1px solid var(--wood-light);
+  padding: 1px 5px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.85em;
+}
+
+/* 代码块：深木底 + 羊皮纸字，超宽时横向滚动（不撑破书页） */
+.markdown-body pre {
+  margin: 0;
+  padding: 16px 18px;
+  background: var(--wood-dark);
+  color: var(--parchment);
+  border: 3px solid var(--wood);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
+    4px 4px 0 rgba(0, 0, 0, 0.35);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+.markdown-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* —— 交互演示：书页下方的独立面板（内嵌 public/ 下的演示页） —— */
+.demo-panel {
+  width: min(880px, 92vw);
+  box-sizing: border-box;
+}
+
+.demo-panel-title {
+  margin: 0 0 18px;
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  text-align: center;
+  color: var(--wood-dark);
+  text-shadow: none;
+}
+
+.demo-frame {
+  display: block;
+  width: 100%;
+  height: 1000px;
+  border: 3px solid var(--wood-dark);
+  background: var(--parchment);
 }
 
 /* ============================================================
@@ -766,6 +825,20 @@ main {
   /* 内容书页 */
   .book-page {
     padding: 24px 20px;
+  }
+
+  /* 代码块与演示面板 */
+  .markdown-body pre {
+    padding: 12px 14px;
+    font-size: 0.75rem;
+  }
+
+  .demo-panel {
+    padding: 18px 14px;
+  }
+
+  .demo-frame {
+    height: 1220px;
   }
 
   /* 开书动画尺寸 */
